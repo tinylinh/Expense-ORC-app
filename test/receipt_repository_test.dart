@@ -38,6 +38,7 @@ void main() {
       totalAmount: 125000,
       receiptDate: DateTime(2026, 10, 24),
       category: 'Food',
+      productName: 'Cà phê sữa',
       rawOcrText: 'TỔNG TIỀN: 125.000',
       createdAt: DateTime(2026, 10, 24, 8),
       updatedAt: DateTime(2026, 10, 24, 9),
@@ -48,6 +49,7 @@ void main() {
     expect(restored.id, 7);
     expect(restored.merchant, receipt.merchant);
     expect(restored.totalAmount, 125000);
+    expect(restored.productName, 'Cà phê sữa');
     expect(restored.receiptDate, DateTime(2026, 10, 24));
     expect(restored.rawOcrText, receipt.rawOcrText);
   });
@@ -60,12 +62,14 @@ void main() {
         totalAmount: 100000,
         receiptDate: date,
         category: 'Food',
+        productName: 'Coffee',
         rawOcrText: 'TOTAL: 100.000',
       ),
     );
 
     expect((await repository.getById(id))?.merchant, 'Cafe A');
     expect((await repository.getAll()).single.totalAmount, 100000);
+    expect((await repository.getAll()).single.productName, 'Coffee');
 
     await repository.update(
       Receipt(
@@ -74,12 +78,14 @@ void main() {
         totalAmount: 125000,
         receiptDate: date,
         category: 'Others',
+        productName: 'Latte',
         rawOcrText: 'GRAND TOTAL: 125.000',
       ),
     );
     final updated = await repository.getById(id);
     expect(updated?.merchant, 'Cafe B');
     expect(updated?.totalAmount, 125000);
+    expect(updated?.productName, 'Latte');
 
     await database.close();
     database = AppDatabase.forTesting(
@@ -95,6 +101,51 @@ void main() {
     await repository.delete(id);
     expect(await repository.getAll(), isEmpty);
     expect(await repository.getById(id), isNull);
+  });
+
+  test('adds the product field when migrating a version 2 database', () async {
+    await database.close();
+    final legacyDatabase = await databaseFactoryFfi.openDatabase(
+      databasePath,
+      options: OpenDatabaseOptions(
+        version: 2,
+        onCreate: (db, version) async {
+          await db.execute('''
+            CREATE TABLE receipts (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              merchant TEXT NOT NULL,
+              total_amount INTEGER NOT NULL,
+              receipt_date TEXT NOT NULL,
+              category TEXT NOT NULL,
+              image_path TEXT,
+              raw_ocr_text TEXT NOT NULL DEFAULT '',
+              created_at TEXT NOT NULL,
+              updated_at TEXT NOT NULL
+            )
+          ''');
+          await db.insert('receipts', {
+            'merchant': 'Legacy shop',
+            'total_amount': 20000,
+            'receipt_date': '2026-10-24',
+            'category': 'Food',
+            'raw_ocr_text': '',
+            'created_at': '2026-10-24T08:00:00.000',
+            'updated_at': '2026-10-24T08:00:00.000',
+          });
+        },
+      ),
+    );
+    await legacyDatabase.close();
+
+    database = AppDatabase.forTesting(
+      factory: databaseFactoryFfi,
+      databasePath: databasePath,
+    );
+    repository = ReceiptRepository(database);
+    final migrated = await repository.getById(1);
+
+    expect(migrated?.merchant, 'Legacy shop');
+    expect(migrated?.productName, isEmpty);
   });
 
   test(

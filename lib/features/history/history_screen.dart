@@ -9,7 +9,9 @@ import '../receipts/receipt_providers.dart';
 enum _ReceiptSort { newest, oldest, highestAmount }
 
 class HistoryScreen extends ConsumerStatefulWidget {
-  const HistoryScreen({super.key});
+  const HistoryScreen({super.key, this.initialCategory});
+
+  final String? initialCategory;
 
   @override
   ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
@@ -17,9 +19,15 @@ class HistoryScreen extends ConsumerStatefulWidget {
 
 class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   final _searchController = TextEditingController();
-  String _category = 'All categories';
+  late String _category;
   _ReceiptSort _sort = _ReceiptSort.newest;
   DateTime? _monthFilter;
+
+  @override
+  void initState() {
+    super.initState();
+    _category = widget.initialCategory ?? 'All categories';
+  }
 
   Future<void> _chooseMonth() async {
     final today = DateTime.now();
@@ -75,9 +83,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                         (receipt.receiptDate.year == _monthFilter!.year &&
                             receipt.receiptDate.month ==
                                 _monthFilter!.month)) &&
-                    receipt.merchant.toLowerCase().contains(
-                      _searchController.text.trim().toLowerCase(),
-                    ),
+                    ('${receipt.merchant} ${receipt.productName}')
+                        .toLowerCase()
+                        .contains(_searchController.text.trim().toLowerCase()),
               )
               .toList();
           switch (_sort) {
@@ -98,7 +106,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                       controller: _searchController,
                       onChanged: (_) => setState(() {}),
                       decoration: const InputDecoration(
-                        hintText: 'Search merchant',
+                        hintText: 'Search merchant or product',
                         prefixIcon: Icon(Icons.search),
                       ),
                     ),

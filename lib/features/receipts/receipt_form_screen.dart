@@ -14,6 +14,8 @@ const receiptCategories = [
   'Shopping',
   'Transportation',
   'Education',
+  'Bills',
+  'Health',
   'Others',
 ];
 
@@ -25,6 +27,7 @@ class ReceiptFormScreen extends ConsumerStatefulWidget {
     this.rawOcrText = '',
     this.ocrLines = const [],
     this.receipt,
+    this.manualEntry = false,
   });
 
   final String? imagePath;
@@ -32,6 +35,7 @@ class ReceiptFormScreen extends ConsumerStatefulWidget {
   final String rawOcrText;
   final List<String> ocrLines;
   final Receipt? receipt;
+  final bool manualEntry;
 
   @override
   ConsumerState<ReceiptFormScreen> createState() => _ReceiptFormScreenState();
@@ -41,6 +45,7 @@ class _ReceiptFormScreenState extends ConsumerState<ReceiptFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _merchantController;
   late final TextEditingController _amountController;
+  late final TextEditingController _productController;
   late DateTime? _date;
   late String _category;
   late final String _ocrText;
@@ -55,6 +60,9 @@ class _ReceiptFormScreenState extends ConsumerState<ReceiptFormScreen> {
     _merchantController = TextEditingController(
       text: existing?.merchant ?? widget.parsed?.merchant ?? '',
     );
+    _productController = TextEditingController(
+      text: existing?.productName ?? widget.parsed?.productName ?? '',
+    );
     _amountController = TextEditingController(
       text:
           (existing?.totalAmount ?? widget.parsed?.totalAmount)?.toString() ??
@@ -63,14 +71,21 @@ class _ReceiptFormScreenState extends ConsumerState<ReceiptFormScreen> {
     _ocrText = widget.rawOcrText.isNotEmpty
         ? widget.rawOcrText
         : existing?.rawOcrText ?? '';
-    _date = existing?.receiptDate ?? widget.parsed?.receiptDate;
-    _category = existing?.category ?? receiptCategories.first;
+    _date =
+        existing?.receiptDate ??
+        widget.parsed?.receiptDate ??
+        (widget.manualEntry ? DateTime.now() : null);
+    _category =
+        existing?.category ??
+        widget.parsed?.category ??
+        receiptCategories.first;
   }
 
   @override
   void dispose() {
     _merchantController.dispose();
     _amountController.dispose();
+    _productController.dispose();
     super.dispose();
   }
 
@@ -101,6 +116,7 @@ class _ReceiptFormScreenState extends ConsumerState<ReceiptFormScreen> {
       totalAmount: _parseAmountInput(_amountController.text)!,
       receiptDate: _date!,
       category: _category,
+      productName: _productController.text.trim(),
       imagePath: widget.imagePath ?? existing?.imagePath,
       rawOcrText: _ocrText,
       createdAt: existing?.createdAt,
@@ -137,7 +153,13 @@ class _ReceiptFormScreenState extends ConsumerState<ReceiptFormScreen> {
     final imagePath = widget.imagePath ?? widget.receipt?.imagePath;
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit receipt' : 'Review receipt'),
+        title: Text(
+          _isEditing
+              ? 'Edit receipt'
+              : widget.manualEntry
+              ? 'Add receipt'
+              : 'Review receipt',
+        ),
       ),
       body: SafeArea(
         child: Form(
@@ -164,14 +186,18 @@ class _ReceiptFormScreenState extends ConsumerState<ReceiptFormScreen> {
                 const SizedBox(height: 22),
               ],
               Text(
-                'Check the details',
+                widget.manualEntry
+                    ? 'Enter receipt details'
+                    : 'Check the details',
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
-                'OCR can be imperfect. Correct anything before saving.',
+                widget.manualEntry
+                    ? 'Add the purchase details and choose a category.'
+                    : 'OCR can be imperfect. Correct anything before saving.',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -188,8 +214,19 @@ class _ReceiptFormScreenState extends ConsumerState<ReceiptFormScreen> {
                     ? 'Enter a merchant'
                     : null,
               ),
-              if (widget.parsed?.merchant == null && !_isEditing)
+              if (widget.parsed?.merchant == null &&
+                  !_isEditing &&
+                  !widget.manualEntry)
                 const _MissingValueHint(field: 'Merchant'),
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: _productController,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
+                  labelText: 'Product or purchase description',
+                  prefixIcon: Icon(Icons.shopping_bag_outlined),
+                ),
+              ),
               const SizedBox(height: 14),
               TextFormField(
                 controller: _amountController,
@@ -198,7 +235,7 @@ class _ReceiptFormScreenState extends ConsumerState<ReceiptFormScreen> {
                   signed: false,
                 ),
                 decoration: const InputDecoration(
-                  labelText: 'Total amount (VND)',
+                  labelText: 'Amount paid / total bill (VND)',
                   prefixIcon: Icon(Icons.payments_outlined),
                 ),
                 validator: (value) {
@@ -208,7 +245,9 @@ class _ReceiptFormScreenState extends ConsumerState<ReceiptFormScreen> {
                       : null;
                 },
               ),
-              if (widget.parsed?.totalAmount == null && !_isEditing)
+              if (widget.parsed?.totalAmount == null &&
+                  !_isEditing &&
+                  !widget.manualEntry)
                 const _MissingValueHint(field: 'Total amount'),
               const SizedBox(height: 14),
               OutlinedButton.icon(
@@ -229,7 +268,7 @@ class _ReceiptFormScreenState extends ConsumerState<ReceiptFormScreen> {
                   ),
                 ),
               ),
-              if (_date == null && !_isEditing)
+              if (_date == null && !_isEditing && !widget.manualEntry)
                 const _MissingValueHint(field: 'Receipt date'),
               const SizedBox(height: 14),
               DropdownButtonFormField<String>(
@@ -287,7 +326,13 @@ class _ReceiptFormScreenState extends ConsumerState<ReceiptFormScreen> {
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Text(_isEditing ? 'Update receipt' : 'Save receipt'),
+                    : Text(
+                        _isEditing
+                            ? 'Update receipt'
+                            : widget.manualEntry
+                            ? 'Add receipt'
+                            : 'Save receipt',
+                      ),
               ),
             ],
           ),

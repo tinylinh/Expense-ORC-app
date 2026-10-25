@@ -1,14 +1,18 @@
 class ParsedReceipt {
   const ParsedReceipt({
     this.merchant,
+    this.productName,
     this.totalAmount,
     this.receiptDate,
+    this.category,
     this.rawOcrText = '',
   });
 
   final String? merchant;
+  final String? productName;
   final int? totalAmount;
   final DateTime? receiptDate;
+  final String? category;
   final String rawOcrText;
 
   bool get hasExtractedFields =>
@@ -49,10 +53,65 @@ class ReceiptParser {
         .toList(growable: false);
     return ParsedReceipt(
       merchant: _findMerchant(lines),
+      productName: _findProductName(lines),
       totalAmount: _findTotal(lines),
       receiptDate: _findDate(rawText),
+      category: _suggestCategory(lines),
       rawOcrText: rawText,
     );
+  }
+
+  String? _findProductName(List<String> lines) {
+    final merchant = _findMerchant(lines);
+    for (final line in lines) {
+      final foldedLine = _foldDiacritics(line);
+      if (line == merchant ||
+          _datePattern.hasMatch(line) ||
+          _totalLabel.hasMatch(foldedLine) ||
+          _excludedLabel.hasMatch(foldedLine) ||
+          _merchantNoise.hasMatch(foldedLine)) {
+        continue;
+      }
+      final letters = foldedLine.replaceAll(RegExp(r'[^a-z]'), '');
+      if (letters.length < 3) continue;
+
+      final product = line
+          .replaceAll(_amountPattern, '')
+          .replaceAll(RegExp(r'\b(vnd|vnđ)\b|[₫đ]', caseSensitive: false), '')
+          .replaceAll(RegExp(r'[\s:|*•-]+$'), '')
+          .replaceAll(RegExp(r'^[\s:|*•-]+'), '')
+          .trim();
+      if (product.length >= 3 && product.length <= 80) return product;
+    }
+    return null;
+  }
+
+  String? _suggestCategory(List<String> lines) {
+    final text = _foldDiacritics(lines.join(' '));
+    if (RegExp(
+      r'\b(coffee|cafe|food|restaurant|grocery|market|milk|bread|'
+      r'coffee|pho|bun|com|ca phe|an uong|rau|thit)\b',
+    ).hasMatch(text)) {
+      return 'Food';
+    }
+    if (RegExp(
+      r'\b(clothes|clothing|shoes|fashion|shopping|supermarket|'
+      r'sieu thi|quanao|quan ao|giay dep)\b',
+    ).hasMatch(text)) {
+      return 'Shopping';
+    }
+    if (RegExp(
+      r'\b(taxi|grab|bus|train|flight|gasoline|petrol|transport|'
+      r'xang|xe buyt|di chuyen)\b',
+    ).hasMatch(text)) {
+      return 'Transportation';
+    }
+    if (RegExp(
+      r'\b(school|tuition|book|course|education|hoc phi|sach)\b',
+    ).hasMatch(text)) {
+      return 'Education';
+    }
+    return null;
   }
 
   String? _findMerchant(List<String> lines) {

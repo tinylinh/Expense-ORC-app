@@ -5,6 +5,7 @@ class Receipt {
     required this.totalAmount,
     required this.receiptDate,
     required this.category,
+    this.productName = '',
     this.imagePath,
     this.rawOcrText = '',
     this.createdAt,
@@ -16,6 +17,7 @@ class Receipt {
   final int totalAmount;
   final DateTime receiptDate;
   final String category;
+  final String productName;
   final String? imagePath;
   final String rawOcrText;
   final DateTime? createdAt;
@@ -27,6 +29,7 @@ class Receipt {
     int? totalAmount,
     DateTime? receiptDate,
     String? category,
+    String? productName,
     String? imagePath,
     String? rawOcrText,
     DateTime? createdAt,
@@ -38,6 +41,7 @@ class Receipt {
       totalAmount: totalAmount ?? this.totalAmount,
       receiptDate: receiptDate ?? this.receiptDate,
       category: category ?? this.category,
+      productName: productName ?? this.productName,
       imagePath: imagePath ?? this.imagePath,
       rawOcrText: rawOcrText ?? this.rawOcrText,
       createdAt: createdAt ?? this.createdAt,
@@ -51,6 +55,7 @@ class Receipt {
     'total_amount': totalAmount,
     'receipt_date': _dateOnly(receiptDate),
     'category': category,
+    'product_name': productName,
     'image_path': imagePath,
     'raw_ocr_text': rawOcrText,
     'created_at': (createdAt ?? DateTime.now()).toIso8601String(),
@@ -64,6 +69,7 @@ class Receipt {
       totalAmount: map['total_amount'] as int,
       receiptDate: DateTime.parse(map['receipt_date'] as String),
       category: map['category'] as String,
+      productName: map['product_name'] as String? ?? '',
       imagePath: map['image_path'] as String?,
       rawOcrText: map['raw_ocr_text'] as String? ?? '',
       createdAt: DateTime.parse(map['created_at'] as String),

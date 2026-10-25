@@ -8,8 +8,10 @@ the verified expense and original image on the device.
 
 - Capture a receipt using the camera or choose an existing image.
 - Recognize text on-device with Google ML Kit Text Recognition.
-- Parse likely merchant, VND total, and receipt date; uncertain values remain
-  blank for manual entry.
+- Parse likely merchant, product, VND bill total, date, and spending category;
+  uncertain values remain blank for manual entry.
+- Add receipts manually, assign preset spending categories, and review monthly
+  totals on the category screen.
 - Review the source image and raw OCR text before saving.
 - Store receipts in SQLite and copy images from temporary picker storage into
   app-private persistent storage.
@@ -35,9 +37,9 @@ Camera/gallery
 Presentation screens use Riverpod providers and do not execute SQL. The
 repository performs parameterized CRUD operations. SQLite stores VND amounts as
 integer đồng, date-only receipt dates, the saved image path, and raw OCR text.
-The database schema is versioned and creates a category/date index when
-migrating from version 1. An image is removed only after no remaining receipt
-references that file.
+The database schema is versioned and migrates older receipt records when adding
+new fields. An image is removed only after no remaining receipt references that
+file.
 
 The dashboard and category chart summarize the current calendar month. The
 weekly chart uses the current Monday-through-Sunday calendar week. Both charts
@@ -141,6 +143,35 @@ flutter build apk --release
 
 Keep the keystore backup secure. Never add signing passwords, keystores,
 `key.properties`, API keys, or local SDK paths to version control.
+
+### Build a downloadable APK with GitHub Actions
+
+The `Build signed release APK` workflow is started manually from the
+repository's Actions tab. Before running it, add these repository Actions
+secrets under **Settings → Secrets and variables → Actions**:
+
+- `ANDROID_KEYSTORE_BASE64`: Base64-encoded contents of
+  `android/expense-orc-upload.jks`.
+- `ANDROID_KEYSTORE_PASSWORD`: the keystore password.
+- `ANDROID_KEY_PASSWORD`: the key password.
+- `ANDROID_KEY_ALIAS`: `expense-orc`.
+
+On Windows PowerShell, copy the Base64 value to the clipboard without printing
+the keystore contents in the terminal:
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("android\expense-orc-upload.jks")) | Set-Clipboard
+```
+
+Paste the clipboard value into the `ANDROID_KEYSTORE_BASE64` secret. The
+workflow writes signing files only during the build and removes them afterward.
+Never add the keystore or passwords to repository files.
+
+After a successful run, open **Actions → Build signed release APK → the latest
+successful run**, then download the `expense-orc-release-apk` artifact. The
+artifact contains `expense-orc-release.apk` and is retained for 30 days. Share
+the workflow run or artifact download link; viewers may need access to the
+GitHub repository to download it.
 
 ## Demo checklist
 

@@ -347,7 +347,11 @@ class ReceiptListTile extends StatelessWidget {
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
-          '${receipt.category} · ${DateFormat('MMM d').format(receipt.receiptDate)}',
+          [
+            if (receipt.productName.isNotEmpty) receipt.productName,
+            receipt.category,
+            DateFormat('MMM d').format(receipt.receiptDate),
+          ].join(' · '),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -379,6 +383,8 @@ Color _categoryColor(String category) => switch (category) {
   'Shopping' => const Color(0xFFE2AD00),
   'Transportation' => const Color(0xFF17617A),
   'Education' => const Color(0xFF079B61),
+  'Bills' => const Color(0xFF7558C8),
+  'Health' => const Color(0xFFCA4D8D),
   _ => const Color(0xFFB76B2B),
 };
 
@@ -387,6 +393,8 @@ IconData _categoryIcon(String category) => switch (category) {
   'Shopping' => Icons.shopping_bag_outlined,
   'Transportation' => Icons.directions_bus_outlined,
   'Education' => Icons.school_outlined,
+  'Bills' => Icons.receipt_long_outlined,
+  'Health' => Icons.health_and_safety_outlined,
   _ => Icons.more_horiz,
 };
 
@@ -510,6 +518,8 @@ class ReceiptDetailScreen extends ConsumerWidget {
             label: 'Date',
             value: DateFormat('dd MMMM yyyy').format(receipt.receiptDate),
           ),
+          if (receipt.productName.isNotEmpty)
+            _DetailRow(label: 'Product', value: receipt.productName),
           _DetailRow(label: 'Category', value: receipt.category),
           if (receipt.rawOcrText.isNotEmpty) ...[
             const SizedBox(height: 14),

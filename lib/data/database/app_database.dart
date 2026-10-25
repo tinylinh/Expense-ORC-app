@@ -33,13 +33,18 @@ class AppDatabase {
     final database = await _factory.openDatabase(
       databasePath,
       options: OpenDatabaseOptions(
-        version: 2,
+        version: 3,
         onCreate: (db, version) async {
           await _createReceiptTable(db);
           await _createCategoryIndex(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) await _createCategoryIndex(db);
+          if (oldVersion < 3) {
+            await db.execute(
+              "ALTER TABLE receipts ADD COLUMN product_name TEXT NOT NULL DEFAULT ''",
+            );
+          }
         },
       ),
     );
@@ -61,6 +66,7 @@ class AppDatabase {
             total_amount INTEGER NOT NULL,
             receipt_date TEXT NOT NULL,
             category TEXT NOT NULL,
+            product_name TEXT NOT NULL DEFAULT '',
             image_path TEXT,
             raw_ocr_text TEXT NOT NULL DEFAULT '',
             created_at TEXT NOT NULL,

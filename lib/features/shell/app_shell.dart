@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../analytics/analytics_screen.dart';
+import '../analytics/categories_screen.dart';
 import '../dashboard/dashboard_screen.dart';
+import '../history/history_screen.dart';
+import '../receipts/receipt_form_screen.dart';
 import '../scanner/receipt_scanner_screen.dart';
 
 class AppShell extends StatefulWidget {
@@ -14,10 +17,33 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int _selectedIndex = 0;
 
-  Future<void> _openScanner() async {
-    await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => const ReceiptScannerScreen()),
+  Future<void> _addReceipt() async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.document_scanner_outlined),
+              title: const Text('Scan a receipt'),
+              onTap: () => Navigator.pop(context, 'scan'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit_note_outlined),
+              title: const Text('Enter receipt manually'),
+              onTap: () => Navigator.pop(context, 'manual'),
+            ),
+          ],
+        ),
+      ),
     );
+    if (!mounted || action == null) return;
+    final page = action == 'scan'
+        ? const ReceiptScannerScreen()
+        : const ReceiptFormScreen(manualEntry: true);
+    await Navigator.of(
+      context,
+    ).push<bool>(MaterialPageRoute(builder: (_) => page));
   }
 
   @override
@@ -26,11 +52,16 @@ class _AppShellState extends State<AppShell> {
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
-        children: const [DashboardScreen(), AnalyticsScreen()],
+        children: const [
+          DashboardScreen(),
+          HistoryScreen(),
+          CategoriesScreen(),
+          AnalyticsScreen(),
+        ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
-        onPressed: _openScanner,
+        onPressed: _addReceipt,
         tooltip: 'Add receipt',
         backgroundColor: theme.brightness == Brightness.dark
             ? const Color(0xFF8DDCF5)
@@ -55,12 +86,24 @@ class _AppShellState extends State<AppShell> {
                 selected: _selectedIndex == 0,
                 onTap: () => setState(() => _selectedIndex = 0),
               ),
-              const SizedBox(width: 48),
+              _NavItem(
+                icon: Icons.receipt_long_outlined,
+                label: 'Receipts',
+                selected: _selectedIndex == 1,
+                onTap: () => setState(() => _selectedIndex = 1),
+              ),
+              const SizedBox(width: 44),
+              _NavItem(
+                icon: Icons.category_outlined,
+                label: 'Categories',
+                selected: _selectedIndex == 2,
+                onTap: () => setState(() => _selectedIndex = 2),
+              ),
               _NavItem(
                 icon: Icons.query_stats_outlined,
                 label: 'Analytics',
-                selected: _selectedIndex == 1,
-                onTap: () => setState(() => _selectedIndex = 1),
+                selected: _selectedIndex == 3,
+                onTap: () => setState(() => _selectedIndex = 3),
               ),
             ],
           ),

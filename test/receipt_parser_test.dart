@@ -20,6 +20,21 @@ TOTAL: 125,000 VND
       expect(result.rawOcrText, contains('ABC COFFEE'));
     });
 
+    test('extracts a product and suggests its spending category', () {
+      final result = parser.parse('''
+ABC COFFEE
+Ca phe sua 30.000 VND
+12/10/2026
+TONG THANH TOAN: 30.000 VND
+''');
+
+      expect(result.merchant, 'ABC COFFEE');
+      expect(result.productName, 'Ca phe sua');
+      expect(result.totalAmount, 30000);
+      expect(result.receiptDate, DateTime(2026, 10, 12));
+      expect(result.category, 'Food');
+    });
+
     test('prioritizes grand total over other labeled totals', () {
       final result = parser.parse('''
 Shop One

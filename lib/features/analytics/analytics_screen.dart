@@ -14,6 +14,8 @@ const _chartCategories = {
   'Shopping': Color(0xFFE2AD00),
   'Transportation': Color(0xFF17617A),
   'Education': Color(0xFF079B61),
+  'Bills': Color(0xFF7558C8),
+  'Health': Color(0xFFCA4D8D),
   'Others': Color(0xFFB76B2B),
 };
 
