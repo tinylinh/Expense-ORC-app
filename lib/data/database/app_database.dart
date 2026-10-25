@@ -3,20 +3,58 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 class AppDatabase {
-  AppDatabase._();
+  AppDatabase._({DatabaseFactory? factory, String? databasePath})
+    : _factory = factory ?? databaseFactory,
+      _databasePath = databasePath;
 
   static final AppDatabase instance = AppDatabase._();
+  static AppDatabase forTesting({
+    required DatabaseFactory factory,
+    required String databasePath,
+  }) => AppDatabase._(factory: factory, databasePath: databasePath);
+
+  final DatabaseFactory _factory;
+  final String? _databasePath;
   Database? _database;
+  Future<Database>? _opening;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    final directory = await getApplicationDocumentsDirectory();
-    final databasePath = path.join(directory.path, 'expense_orc.db');
-    _database = await openDatabase(
+    return _opening ??= _open().whenComplete(() => _opening = null);
+  }
+
+  Future<Database> _open() async {
+    final databasePath =
+        _databasePath ??
+        path.join(
+          (await getApplicationDocumentsDirectory()).path,
+          'expense_orc.db',
+        );
+    final database = await _factory.openDatabase(
       databasePath,
-      version: 1,
-      onCreate: (db, version) async {
-        await db.execute('''
+      options: OpenDatabaseOptions(
+        version: 2,
+        onCreate: (db, version) async {
+          await _createReceiptTable(db);
+          await _createCategoryIndex(db);
+        },
+        onUpgrade: (db, oldVersion, newVersion) async {
+          if (oldVersion < 2) await _createCategoryIndex(db);
+        },
+      ),
+    );
+    _database = database;
+    return database;
+  }
+
+  Future<void> close() async {
+    final database = _database;
+    _database = null;
+    if (database != null) await database.close();
+  }
+
+  Future<void> _createReceiptTable(DatabaseExecutor db) async {
+    await db.execute('''
           CREATE TABLE receipts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             merchant TEXT NOT NULL,
@@ -29,11 +67,13 @@ class AppDatabase {
             updated_at TEXT NOT NULL
           )
         ''');
-        await db.execute(
-          'CREATE INDEX receipts_date_idx ON receipts(receipt_date)',
-        );
-      },
+    await db.execute(
+      'CREATE INDEX receipts_date_idx ON receipts(receipt_date)',
     );
-    return _database!;
   }
+
+  Future<void> _createCategoryIndex(DatabaseExecutor db) => db.execute(
+    'CREATE INDEX receipts_category_date_idx '
+    'ON receipts(category, receipt_date)',
+  );
 }

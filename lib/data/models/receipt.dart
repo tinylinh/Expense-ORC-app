@@ -46,16 +46,16 @@ class Receipt {
   }
 
   Map<String, Object?> toMap() => {
-        'id': id,
-        'merchant': merchant,
-        'total_amount': totalAmount,
-        'receipt_date': _dateOnly(receiptDate),
-        'category': category,
-        'image_path': imagePath,
-        'raw_ocr_text': rawOcrText,
-        'created_at': (createdAt ?? DateTime.now()).toIso8601String(),
-        'updated_at': (updatedAt ?? DateTime.now()).toIso8601String(),
-      };
+    'id': id,
+    'merchant': merchant,
+    'total_amount': totalAmount,
+    'receipt_date': _dateOnly(receiptDate),
+    'category': category,
+    'image_path': imagePath,
+    'raw_ocr_text': rawOcrText,
+    'created_at': (createdAt ?? DateTime.now()).toIso8601String(),
+    'updated_at': (updatedAt ?? DateTime.now()).toIso8601String(),
+  };
 
   factory Receipt.fromMap(Map<String, Object?> map) {
     return Receipt(

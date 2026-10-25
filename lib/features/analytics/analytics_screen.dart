@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/receipt.dart';
 import '../../shared/charts/spending_charts.dart';
+import 'expense_aggregations.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../receipts/receipt_providers.dart';
 
@@ -34,7 +35,8 @@ class AnalyticsScreen extends ConsumerWidget {
                 Text('Could not load analytics: $error'),
                 const SizedBox(height: 12),
                 FilledButton.tonal(
-                  onPressed: () => ref.read(receiptsProvider.notifier).refresh(),
+                  onPressed: () =>
+                      ref.read(receiptsProvider.notifier).refresh(),
                   child: const Text('Retry'),
                 ),
               ],
@@ -56,21 +58,24 @@ class _AnalyticsContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final monthly = receipts
-        .where((item) =>
-            item.receiptDate.year == now.year &&
-            item.receiptDate.month == now.month)
+        .where(
+          (item) =>
+              item.receiptDate.year == now.year &&
+              item.receiptDate.month == now.month,
+        )
         .toList(growable: false);
-    final totalsByCategory = {
-      for (final category in _chartCategories.keys)
-        category: monthly
-            .where((item) => item.category == category)
-            .fold<int>(0, (sum, item) => sum + item.totalAmount),
-    };
+    final totalsByCategory = categoryExpenseTotals(
+      monthly,
+      _chartCategories.keys,
+    );
     final total = monthly.fold<int>(0, (sum, item) => sum + item.totalAmount);
     final values = _chartCategories.keys
         .map((category) => (totalsByCategory[category] ?? 0).toDouble())
         .toList(growable: false);
-    final weekly = _thisWeekValues(receipts);
+    final weekly = weeklyExpenseTotals(
+      receipts,
+      dateInWeek: now,
+    ).map((amount) => amount.toDouble()).toList(growable: false);
     final theme = Theme.of(context);
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
@@ -146,23 +151,15 @@ class _AnalyticsContent extends StatelessWidget {
   }
 }
 
-List<double> _thisWeekValues(List<Receipt> receipts) {
-  final today = DateTime.now();
-  final monday = DateTime(today.year, today.month, today.day)
-      .subtract(Duration(days: today.weekday - 1));
-  return List<double>.generate(7, (index) {
-    final date = monday.add(Duration(days: index));
-    return receipts
-        .where((receipt) =>
-            receipt.receiptDate.year == date.year &&
-            receipt.receiptDate.month == date.month &&
-            receipt.receiptDate.day == date.day)
-        .fold<int>(0, (sum, item) => sum + item.totalAmount)
-        .toDouble();
-  }, growable: false);
-}
-
-List<String> _weekLabels() => const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+List<String> _weekLabels() => const [
+  'Mon',
+  'Tue',
+  'Wed',
+  'Thu',
+  'Fri',
+  'Sat',
+  'Sun',
+];
 
 class _ChartCard extends StatelessWidget {
   const _ChartCard({
@@ -184,9 +181,12 @@ class _ChartCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            )),
+            Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 3),
             Text(
               subtitle,
@@ -218,34 +218,34 @@ class _LegendRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 7),
-        child: Row(
-          children: [
-            Container(
-              width: 9,
-              height: 9,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: 9),
-            Expanded(child: Text(name)),
-            Text(
-              percent,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-            ),
-            const SizedBox(width: 12),
-            SizedBox(
-              width: 105,
-              child: Text(
-                amount,
-                textAlign: TextAlign.end,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
+    padding: const EdgeInsets.symmetric(vertical: 7),
+    child: Row(
+      children: [
+        Container(
+          width: 9,
+          height: 9,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-      );
+        const SizedBox(width: 9),
+        Expanded(child: Text(name)),
+        Text(
+          percent,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(width: 12),
+        SizedBox(
+          width: 105,
+          child: Text(
+            amount,
+            textAlign: TextAlign.end,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _ChartEmptyState extends StatelessWidget {
@@ -256,18 +256,18 @@ class _ChartEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        height: compact ? 90 : 135,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Text(
-              message,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-            ),
+    height: compact ? 90 : 135,
+    child: Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
-      );
+      ),
+    ),
+  );
 }

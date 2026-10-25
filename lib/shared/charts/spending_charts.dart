@@ -45,20 +45,20 @@ class _DonutChartState extends State<DonutChart>
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) => CustomPaint(
-          painter: DonutChartPainter(
-            values: widget.values,
-            colors: widget.colors,
-            progress: Curves.easeOutCubic.transform(_controller.value),
-            centerText: widget.centerText,
-            totalText: widget.totalText,
-            foreground: Theme.of(context).colorScheme.onSurface,
-            track: Theme.of(context).colorScheme.surfaceContainerHighest,
-          ),
-          child: const SizedBox.expand(),
-        ),
-      );
+    animation: _controller,
+    builder: (context, child) => CustomPaint(
+      painter: DonutChartPainter(
+        values: widget.values,
+        colors: widget.colors,
+        progress: Curves.easeOutCubic.transform(_controller.value),
+        centerText: widget.centerText,
+        totalText: widget.totalText,
+        foreground: Theme.of(context).colorScheme.onSurface,
+        track: Theme.of(context).colorScheme.surfaceContainerHighest,
+      ),
+      child: const SizedBox.expand(),
+    ),
+  );
 }
 
 class DonutChartPainter extends CustomPainter {
@@ -103,7 +103,13 @@ class DonutChartPainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.butt
           ..strokeWidth = strokeWidth;
-        canvas.drawArc(rect, startAngle, math.max(0, sweep - 0.025), false, paint);
+        canvas.drawArc(
+          rect,
+          startAngle,
+          math.max(0, sweep - 0.025),
+          false,
+          paint,
+        );
         startAngle += sweep;
       }
     }
@@ -197,19 +203,19 @@ class _WeeklyBarChartState extends State<WeeklyBarChart>
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) => CustomPaint(
-          painter: WeeklyBarChartPainter(
-            values: widget.values,
-            labels: widget.labels,
-            color: widget.color,
-            progress: Curves.easeOutCubic.transform(_controller.value),
-            labelColor: Theme.of(context).colorScheme.onSurfaceVariant,
-            gridColor: Theme.of(context).colorScheme.outlineVariant,
-          ),
-          child: const SizedBox.expand(),
-        ),
-      );
+    animation: _controller,
+    builder: (context, child) => CustomPaint(
+      painter: WeeklyBarChartPainter(
+        values: widget.values,
+        labels: widget.labels,
+        color: widget.color,
+        progress: Curves.easeOutCubic.transform(_controller.value),
+        labelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+        gridColor: Theme.of(context).colorScheme.outlineVariant,
+      ),
+      child: const SizedBox.expand(),
+    ),
+  );
 }
 
 class WeeklyBarChartPainter extends CustomPainter {
@@ -248,7 +254,11 @@ class WeeklyBarChartPainter extends CustomPainter {
       ..strokeWidth = 1;
     for (var line = 0; line <= 2; line++) {
       final y = top + chartHeight * line / 2;
-      canvas.drawLine(Offset(left, y), Offset(size.width - right, y), gridPaint);
+      canvas.drawLine(
+        Offset(left, y),
+        Offset(size.width - right, y),
+        gridPaint,
+      );
     }
     final slotWidth = chartWidth / values.length;
     final barWidth = math.min(24.0, slotWidth * 0.55);

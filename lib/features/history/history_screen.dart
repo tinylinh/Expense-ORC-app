@@ -57,7 +57,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 Text('Could not load receipts: $error'),
                 const SizedBox(height: 12),
                 FilledButton.tonal(
-                  onPressed: () => ref.read(receiptsProvider.notifier).refresh(),
+                  onPressed: () =>
+                      ref.read(receiptsProvider.notifier).refresh(),
                   child: const Text('Retry'),
                 ),
               ],
@@ -66,15 +67,18 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         ),
         data: (receipts) {
           final filtered = receipts
-              .where((receipt) =>
-                  (_category == 'All categories' ||
-                      receipt.category == _category) &&
-                  (_monthFilter == null ||
-                      (receipt.receiptDate.year == _monthFilter!.year &&
-                          receipt.receiptDate.month == _monthFilter!.month)) &&
-                  receipt.merchant
-                      .toLowerCase()
-                      .contains(_searchController.text.trim().toLowerCase()))
+              .where(
+                (receipt) =>
+                    (_category == 'All categories' ||
+                        receipt.category == _category) &&
+                    (_monthFilter == null ||
+                        (receipt.receiptDate.year == _monthFilter!.year &&
+                            receipt.receiptDate.month ==
+                                _monthFilter!.month)) &&
+                    receipt.merchant.toLowerCase().contains(
+                      _searchController.text.trim().toLowerCase(),
+                    ),
+              )
               .toList();
           switch (_sort) {
             case _ReceiptSort.newest:
@@ -111,14 +115,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                 vertical: 12,
                               ),
                             ),
-                            items: [
-                              'All categories',
-                              ...receiptCategories,
-                            ]
-                                .map((category) => DropdownMenuItem(
-                                      value: category,
-                                      child: Text(category),
-                                    ))
+                            items: ['All categories', ...receiptCategories]
+                                .map(
+                                  (category) => DropdownMenuItem(
+                                    value: category,
+                                    child: Text(category),
+                                  ),
+                                )
                                 .toList(),
                             onChanged: (value) {
                               if (value != null) {
@@ -167,17 +170,23 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                         children: [
                           TextButton.icon(
                             onPressed: _chooseMonth,
-                            icon: const Icon(Icons.calendar_month_outlined, size: 18),
+                            icon: const Icon(
+                              Icons.calendar_month_outlined,
+                              size: 18,
+                            ),
                             label: Text(
                               _monthFilter == null
                                   ? 'Filter by month'
-                                  : DateFormat('MMMM yyyy').format(_monthFilter!),
+                                  : DateFormat(
+                                      'MMMM yyyy',
+                                    ).format(_monthFilter!),
                             ),
                           ),
                           if (_monthFilter != null)
                             IconButton(
                               tooltip: 'Clear date filter',
-                              onPressed: () => setState(() => _monthFilter = null),
+                              onPressed: () =>
+                                  setState(() => _monthFilter = null),
                               icon: const Icon(Icons.close, size: 18),
                             ),
                         ],

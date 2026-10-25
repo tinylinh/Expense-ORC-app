@@ -21,10 +21,13 @@ class AppTheme {
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
-      scaffoldBackgroundColor:
-          isDark ? const Color(0xFF101112) : const Color(0xFFF7F7F8),
+      scaffoldBackgroundColor: isDark
+          ? const Color(0xFF101112)
+          : const Color(0xFFF7F7F8),
       appBarTheme: AppBarTheme(
-        backgroundColor: isDark ? const Color(0xFF101112) : const Color(0xFFF7F7F8),
+        backgroundColor: isDark
+            ? const Color(0xFF101112)
+            : const Color(0xFFF7F7F8),
         foregroundColor: isDark ? Colors.white : ink,
         elevation: 0,
         centerTitle: false,
@@ -40,11 +43,15 @@ class AppTheme {
         fillColor: scheme.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: isDark ? Colors.white12 : Colors.black12),
+          borderSide: BorderSide(
+            color: isDark ? Colors.white12 : Colors.black12,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: isDark ? Colors.white12 : Colors.black12),
+          borderSide: BorderSide(
+            color: isDark ? Colors.white12 : Colors.black12,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),

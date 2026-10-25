@@ -22,11 +22,14 @@ class SettingsScreen extends ConsumerWidget {
             child: SwitchListTile(
               value: darkModeEnabled,
               onChanged: (value) {
-                ref.read(themeModeProvider.notifier).state =
-                    value ? ThemeMode.dark : ThemeMode.light;
+                ref.read(themeModeProvider.notifier).state = value
+                    ? ThemeMode.dark
+                    : ThemeMode.light;
               },
               title: const Text('Dark mode'),
-              subtitle: const Text('Use a darker appearance throughout the app'),
+              subtitle: const Text(
+                'Use a darker appearance throughout the app',
+              ),
               secondary: const Icon(Icons.dark_mode_outlined),
             ),
           ),

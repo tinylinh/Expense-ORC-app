@@ -39,35 +39,47 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen> {
     if (image == null) return;
     setState(() => _recognizing = true);
     final service = OcrService();
-    var text = '';
+    var result = const OcrResult(text: '', lines: []);
     var ocrError = '';
     try {
-      text = await service.recognize(image.path);
+      result = await service.recognize(image.path);
     } catch (error) {
       ocrError = '$error';
     } finally {
-      await service.close();
+      try {
+        await service.close();
+      } catch (error) {
+        ocrError = ocrError.isEmpty
+            ? 'Could not release the text recognizer: $error'
+            : '$ocrError\nCould not release the text recognizer: $error';
+      }
     }
     if (!mounted) return;
     if (ocrError.isNotEmpty) {
       _showError('OCR failed. You can still enter details manually: $ocrError');
     }
-    await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => ReceiptFormScreen(
-          imagePath: image.path,
-          parsed: ReceiptParser().parse(text),
-          rawOcrText: text,
+    try {
+      await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => ReceiptFormScreen(
+            imagePath: image.path,
+            parsed: ReceiptParser().parse(result.text),
+            rawOcrText: result.text,
+            ocrLines: result.lines,
+          ),
         ),
-      ),
-    );
-    if (mounted) setState(() => _recognizing = false);
+      );
+    } catch (error) {
+      if (mounted) _showError('Could not open receipt review: $error');
+    } finally {
+      if (mounted) setState(() => _recognizing = false);
+    }
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -118,7 +130,9 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen> {
                       File(_image!.path),
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) =>
-                          const Center(child: Text('Unable to preview this image')),
+                          const Center(
+                            child: Text('Unable to preview this image'),
+                          ),
                     ),
             ),
             const SizedBox(height: 18),

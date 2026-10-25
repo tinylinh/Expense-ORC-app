@@ -11,9 +11,11 @@ import '../receipts/receipt_providers.dart';
 import '../history/history_screen.dart';
 import '../settings/settings_screen.dart';
 
-String formatVnd(num amount) =>
-    NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0)
-        .format(amount);
+String formatVnd(num amount) => NumberFormat.currency(
+  locale: 'vi_VN',
+  symbol: '₫',
+  decimalDigits: 0,
+).format(amount);
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -38,15 +40,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   void _openSettings() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const SettingsScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
   }
 
   void _openHistory() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const HistoryScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const HistoryScreen()));
   }
 
   @override
@@ -62,9 +64,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ),
         data: (receipts) {
           final monthReceipts = receipts
-              .where((receipt) =>
-                  receipt.receiptDate.year == _month.year &&
-                  receipt.receiptDate.month == _month.month)
+              .where(
+                (receipt) =>
+                    receipt.receiptDate.year == _month.year &&
+                    receipt.receiptDate.month == _month.month,
+              )
               .toList(growable: false);
           final total = monthReceipts.fold<int>(
             0,
@@ -92,7 +96,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           const Spacer(),
                           TextButton.icon(
                             onPressed: _chooseMonth,
-                            icon: const Icon(Icons.keyboard_arrow_down, size: 18),
+                            icon: const Icon(
+                              Icons.keyboard_arrow_down,
+                              size: 18,
+                            ),
                             label: Text(DateFormat('MMMM yyyy').format(_month)),
                             style: TextButton.styleFrom(
                               foregroundColor: theme.colorScheme.onSurface,
@@ -132,7 +139,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       if (receipts.isEmpty)
                         const _EmptyReceipts()
                       else
-                        ...receipts.take(5).map(
+                        ...receipts
+                            .take(5)
+                            .map(
                               (receipt) => Padding(
                                 padding: const EdgeInsets.only(bottom: 10),
                                 child: ReceiptListTile(receipt: receipt),
@@ -356,7 +365,9 @@ class ReceiptListTile extends StatelessWidget {
           ),
         ),
         onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => ReceiptDetailScreen(receipt: receipt)),
+          MaterialPageRoute(
+            builder: (_) => ReceiptDetailScreen(receipt: receipt),
+          ),
         ),
       ),
     );
@@ -364,20 +375,20 @@ class ReceiptListTile extends StatelessWidget {
 }
 
 Color _categoryColor(String category) => switch (category) {
-      'Food' => const Color(0xFFE8483F),
-      'Shopping' => const Color(0xFFE2AD00),
-      'Transportation' => const Color(0xFF17617A),
-      'Education' => const Color(0xFF079B61),
-      _ => const Color(0xFFB76B2B),
-    };
+  'Food' => const Color(0xFFE8483F),
+  'Shopping' => const Color(0xFFE2AD00),
+  'Transportation' => const Color(0xFF17617A),
+  'Education' => const Color(0xFF079B61),
+  _ => const Color(0xFFB76B2B),
+};
 
 IconData _categoryIcon(String category) => switch (category) {
-      'Food' => Icons.restaurant_outlined,
-      'Shopping' => Icons.shopping_bag_outlined,
-      'Transportation' => Icons.directions_bus_outlined,
-      'Education' => Icons.school_outlined,
-      _ => Icons.more_horiz,
-    };
+  'Food' => Icons.restaurant_outlined,
+  'Shopping' => Icons.shopping_bag_outlined,
+  'Transportation' => Icons.directions_bus_outlined,
+  'Education' => Icons.school_outlined,
+  _ => Icons.more_horiz,
+};
 
 class _LoadError extends StatelessWidget {
   const _LoadError({required this.error, required this.onRetry});
@@ -387,22 +398,22 @@ class _LoadError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, size: 42),
-              const SizedBox(height: 12),
-              const Text('Could not load your receipts.'),
-              const SizedBox(height: 4),
-              Text('$error', textAlign: TextAlign.center),
-              const SizedBox(height: 14),
-              FilledButton.tonal(onPressed: onRetry, child: const Text('Retry')),
-            ],
-          ),
-        ),
-      );
+    child: Padding(
+      padding: const EdgeInsets.all(28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.error_outline, size: 42),
+          const SizedBox(height: 12),
+          const Text('Could not load your receipts.'),
+          const SizedBox(height: 4),
+          Text('$error', textAlign: TextAlign.center),
+          const SizedBox(height: 14),
+          FilledButton.tonal(onPressed: onRetry, child: const Text('Retry')),
+        ],
+      ),
+    ),
+  );
 }
 
 class ReceiptDetailScreen extends ConsumerWidget {
@@ -417,7 +428,9 @@ class ReceiptDetailScreen extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete receipt?'),
-        content: const Text('This will permanently remove this receipt and image.'),
+        content: const Text(
+          'This will permanently remove this receipt and image.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -471,22 +484,26 @@ class ReceiptDetailScreen extends ConsumerWidget {
           if (imagePath != null && File(imagePath).existsSync())
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: Image.file(File(imagePath), height: 260, fit: BoxFit.cover),
+              child: Image.file(
+                File(imagePath),
+                height: 260,
+                fit: BoxFit.cover,
+              ),
             ),
           const SizedBox(height: 22),
           Text(
             receipt.merchant,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 7),
           Text(
             formatVnd(receipt.totalAmount),
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppTheme.red,
-                  fontWeight: FontWeight.bold,
-                ),
+              color: AppTheme.red,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 22),
           _DetailRow(
@@ -496,7 +513,10 @@ class ReceiptDetailScreen extends ConsumerWidget {
           _DetailRow(label: 'Category', value: receipt.category),
           if (receipt.rawOcrText.isNotEmpty) ...[
             const SizedBox(height: 14),
-            Text('Recognized text', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              'Recognized text',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             SelectableText(receipt.rawOcrText),
           ],
@@ -514,19 +534,19 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 9),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                label,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
+    padding: const EdgeInsets.symmetric(vertical: 9),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
-          ],
+          ),
         ),
-      );
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+      ],
+    ),
+  );
 }

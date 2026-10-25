@@ -35,8 +35,9 @@ class _AppShellState extends State<AppShell> {
         backgroundColor: theme.brightness == Brightness.dark
             ? const Color(0xFF8DDCF5)
             : Colors.black,
-        foregroundColor:
-            theme.brightness == Brightness.dark ? Colors.black : Colors.white,
+        foregroundColor: theme.brightness == Brightness.dark
+            ? Colors.black
+            : Colors.white,
         shape: const CircleBorder(),
         child: const Icon(Icons.add, size: 28),
       ),
@@ -99,10 +100,10 @@ class _NavItem extends StatelessWidget {
               Icon(icon, color: color, size: 21),
               Text(
                 label,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelSmall
-                    ?.copyWith(color: color, fontWeight: FontWeight.w600),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
