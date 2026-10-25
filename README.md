@@ -173,18 +173,7 @@ artifact contains `expense-orc-release.apk` and is retained for 30 days. Share
 the workflow run or artifact download link; viewers may need access to the
 GitHub repository to download it.
 
-## Demo checklist
 
-Record a 2–3 minute demo on a physical Android device showing:
-
-1. Camera capture of a real receipt.
-2. On-device OCR and detected merchant, date, and total.
-3. Review of raw OCR text and manual correction of any values.
-4. Saving the receipt and finding it in history.
-5. Restarting the app to show persistence.
-6. The animated category donut chart reflecting the saved receipt.
-
-No demo recording or physical-device verification is included in this repository.
 
 ## Known limitations
 
